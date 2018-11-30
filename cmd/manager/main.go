@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
 	"runtime"
 
 	"github.com/mumoshu/aws-secret-operator/pkg/apis"
@@ -18,6 +17,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
+	"github.com/pkg/errors"
 )
 
 var log = logf.Log.WithName("cmd")
@@ -28,7 +29,7 @@ func printVersion() {
 	log.Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
 }
 
-func main() {
+func run() error {
 	flag.Parse()
 
 	// The logger instantiated here can be changed to any logger
@@ -41,15 +42,13 @@ func main() {
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		log.Error(err, "failed to get watch namespace")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to get watch namespace")
 	}
 
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()
 	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to get config")
 	}
 
 	// Become the leader before proceeding
@@ -58,37 +57,34 @@ func main() {
 	r := ready.NewFileReady()
 	err = r.Set()
 	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to set")
 	}
 	defer r.Unset()
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
 	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to init manager")
 	}
 
 	log.Info("Registering Components.")
 
 	// Setup Scheme for all resources
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to add apis to scheme")
 	}
 
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+		return errors.Wrap(err, "failed to add controller(s) to manager")
 	}
 
 	log.Info("Starting the Cmd.")
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		log.Error(err, "manager exited non-zero")
-		os.Exit(1)
+		return errors.Wrap(err, "manager exited non-zero")
 	}
+
+	return nil
 }

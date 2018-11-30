@@ -16,7 +16,7 @@ spec:
       containers:
         - name: aws-secret-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: mumoshu/aws-secret-operator
           ports:
           - containerPort: 60000
             name: metrics

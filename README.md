@@ -101,6 +101,28 @@ $ kubectl delete -f deploy/service_account.yaml
 $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 ```
 
+## Why not...
+
+1. Why not use AWS SSM Parameter Store as a primary source of secrets?
+
+   Parameter Store has an efficient API to batch get multiple secrets sharing a same prefix. However, its rate limit is
+   known to be too low. This has been discussed in several places in the Internet:
+
+   - https://github.com/segmentio/chamber/issues/84#issuecomment-437728047
+   - https://www.stackery.io/blog/serverless-secrets/
+   - https://news.ycombinator.com/item?id=16758382
+
+2. Why not use S3 as a primary source of secrets?
+
+   This project could have used S3 instead, because S3 supports efficient batch gets with filters by prefixes.
+   An example of such project is [chamber](https://github.com/segmentio/chamber). chamber is a CLI wraps SSM Param Store and S3,
+   [moving from Parameter Store to S3](https://github.com/segmentio/chamber/issues/84#issuecomment-438451470) due to the issue 1 explained above.
+
+   One of benefit of Secrets Manager over S3 is that in theory Secrets Manager has possibilities to deserve attentions of developers who
+   who, for a better U/X, wraps Secrets Manager into a dedicated service/application to manager secrets.
+
+   As using S3 for a primary storage for secrets is not a common practice, S3 can be said to have less possibilities to deserve.
+
 ## Alternatives
 
 1. Use [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets) when:

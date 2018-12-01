@@ -17,6 +17,23 @@ Let's say you've stored a secrets manager secret named `prod/mysecret` whose val
 }
 ```
 
+```console
+$ aws secretsmanager get-secret-value \
+    --secret-id prod/mysecret
+
+$ aws secretsmanager create-secret \
+    --name prod/mysecret
+
+{
+    "ARN": "arn:aws:secretsmanager:REGION:ACCOUNT:secret:prod/mysecret-Ld0PUs",
+    "Name": "prod/mysecret"
+}
+
+$ aws secretsmanager put-secret-value\
+    --secret-id prod/mysecret \
+    --secret-string '{"foo":"bar"}'
+```
+
 Create a custom resource that points the secret:
 
 `deploy/crds/mumoshu_v1alpha1_awssecret_cr.yaml`:
@@ -51,6 +68,8 @@ The operator then creates a Kubernetes secret named `example-awssecret` that loo
 }
 ```
 
+Now, your pod should either mount the generated secret as a volume, or set an environment variable from the secret.
+
 ## Installation
 
 ```
@@ -81,3 +100,17 @@ $ kubectl delete -f deploy/role_binding.yaml
 $ kubectl delete -f deploy/service_account.yaml
 $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 ```
+
+## Alternatives
+
+1. Use [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets) when:
+- You want something cloud-agnostic
+- You are ok with [the theoretical potential that your private key can be stolen](https://github.com/bitnami-labs/sealed-secrets/issues/123)
+2. Use [future-simple/helm-secrets](https://github.com/futuresimple/helm-secrets) when:
+- You don't need to share secrets across apps/namespaces/environments. 
+
+  Assuming you're going to manage encrypted secrets within a Git repo, sharing them requires you to copy and possible re-encrypt the secret to multiple git projects.
+
+## Acknowledgements
+
+This project is powered by [operator-framework](https://github.com/operator-framework/operator-sdk). Thanks for building the awesome framework :)

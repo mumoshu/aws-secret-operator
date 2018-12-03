@@ -43,6 +43,26 @@ $ aws secretsmanager put-secret-value\
     --secret-string '{"foo":"bar"}'
 ```
 
+Let's see the `SecretId` and `VersionId` which uniquely identifies the secret:
+
+```console
+$ aws secretsmanager describe-secret --secret-id prod/mysecret
+{
+    "ARN": "arn:aws:secretsmanager:REGION:ACCOUNT:secret:prod/mysecret-Ld0PUs",
+    "Name": "prod/mysecret",
+    "LastChangedDate": 1543636981.306,
+    "LastAccessedDate": 1543622400.0,
+    "VersionIdsToStages": {
+        "c43e66cb-d0fe-44c5-9b7e-d450441a04be": [
+            "AWSCURRENT"
+        ]
+    }
+}
+```
+
+> Note that `aws-secret-operator` intentionally disallow omitting `VersionId` or specifying `VersionStage` as it makes you
+difficult to trigger updates to Pods in response to AWS secrets changes.
+
 Create a custom resource that points the secret:
 
 `deploy/crds/mumoshu_v1alpha1_awssecret_cr.yaml`:
@@ -53,7 +73,10 @@ kind: AWSSecret
 metadata:
   name: example
 spec:
-  secretsManagerSecretId: prod/mysecret
+  stringDataFrom:
+    secretsManagerRef:
+      secretId: prod/mysecret
+      versionId: c43e66cb-d0fe-44c5-9b7e-d450441a04be
 ```
 
 The operator then creates a Kubernetes secret named `example-awssecret` that looks like:

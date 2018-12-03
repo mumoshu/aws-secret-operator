@@ -11,7 +11,21 @@ import (
 type AWSSecretSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	SecretsManagerSecretId string `json:"SecretsManagerSecretId,omitempty"`
+	StringDataFrom StringDataFrom `json:"stringDataFrom,omitempty"`
+}
+
+// StringDataFrom defines how the resulting Secret's `stringData` is built
+type StringDataFrom struct {
+	SecretsManagerSecretRef SecretsManagerSecretRef `json:"secretsManagerSecretRef,omitempty"`
+}
+
+// SecretsManagerSecretRef defines from which SecretsManager Secret the Kubernetes secret is built
+// See https://docs.aws.amazon.com/secretsmanager/latest/userguide/terms-concepts.html for the concepts
+type SecretsManagerSecretRef struct {
+	// SecretId is the SecretId a.k.a `--secret-id` of the SecretsManager secret version
+	SecretId string `json:"secretId,omitempty"`
+	// VersionIdis the VersionId a.k.a `--version-id` of the SecretsManager secret version
+	VersionId string `json:"versionId,omitempty"`
 }
 
 // AWSSecretStatus defines the observed state of AWSSecret

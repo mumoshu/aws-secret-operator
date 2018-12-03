@@ -104,34 +104,39 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Define a new Pod object
-	sec, err := r.newSecretForCR(instance)
+	desired, err := r.newSecretForCR(instance)
 	if err != nil {
 		return reconcile.Result{}, errs.Wrap(err, "failed to compute secret for cr")
 	}
 
 	// Set AWSSecret instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, sec, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(instance, desired, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sec.Name, Namespace: sec.Namespace}, found)
+	// Check if this Secret already exists
+	current := &corev1.Pod{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, current)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Secret", "Secret.Namespace", sec.Namespace, "Secret.Name", sec.Name)
-		err = r.client.Create(context.TODO(), sec)
+		reqLogger.Info("Creating a new Secret", "Secret.Namespace", desired.Namespace, "Secret.Name", desired.Name)
+		err = r.client.Create(context.TODO(), desired)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 
-		// Pod created successfully - don't requeue
+		// Secret created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+	reqLogger.Info("Updating the Secret", "Secret.Namespace", desired.Namespace, "Secret.Name", desired.Name)
+	err = r.client.Update(context.TODO(), desired)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Secret updated successfully - don't requeue
 	return reconcile.Result{}, nil
 }
 
@@ -143,7 +148,8 @@ func (r *ReconcileAWSSecret) newSecretForCR(cr *mumoshuv1alpha1.AWSSecret) (*cor
 	if r.ctx == nil {
 		r.ctx = newContext(nil)
 	}
-	data, err := r.ctx.JsonAsMap(cr.Spec.SecretsManagerSecretId)
+	ref := cr.Spec.StringDataFrom.SecretsManagerSecretRef
+	data, err := r.ctx.SecretsManagerSecretToKubernetesStringData(ref)
 	if err != nil {
 		return nil, errs.Wrap(err, "failed to get json secret as map")
 	}

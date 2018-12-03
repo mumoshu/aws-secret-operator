@@ -74,7 +74,7 @@ metadata:
   name: example
 spec:
   stringDataFrom:
-    secretsManagerRef:
+    secretsManagerSecretRef:
       secretId: prod/mysecret
       versionId: c43e66cb-d0fe-44c5-9b7e-d450441a04be
 ```

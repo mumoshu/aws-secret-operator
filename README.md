@@ -2,10 +2,19 @@
 
 A Kubernetes operator that automatically creates and updates Kubernetes secrets according to what are stored in AWS Secrets Manager.
 
+`aws-secret-operator` custom resources maps AWS secrets to K8S secrets. Consider K8S secrets as just cached, latest AWS secrets.
+
 # Benefits
 
-- Security from "decryption at rest". No need to create Kubernetes secrets by hand, helm, kustomize, or anything that requires you to decrypt the original secret on CI or your laptop
-- Relies on Secrets Manager instead of SSM Parameter Store, so that the operator doesn't suffer from tight AWS API rate limit
+**Security:**
+
+By "decryption at rest". No need to create Kubernetes secrets by hand, helm, kustomize, or anything that requires you to decrypt the original secret on CI or your laptop
+
+**Scalability:**
+
+Relies on Secrets Manager instead of SSM Parameter Store for less chances being throttled by SSM's API rate limit.
+
+Kubernetes secrets act as cache of Secrets Manager secrets, even number of API calls to Secrets Manager is minimum.
 
 # Usage
 
@@ -105,8 +114,13 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 
 1. Why not use AWS SSM Parameter Store as a primary source of secrets?
 
-   Parameter Store has an efficient API to batch get multiple secrets sharing a same prefix. However, its rate limit is
-   known to be too low. This has been discussed in several places in the Internet:
+   **Pros:**
+
+   Parameter Store has an efficient API to batch get multiple secrets sharing a same prefix.
+
+   **Cons:**
+
+   Its **API rate limit** is way too low. This has been discussed in several places in the Internet:
 
    - https://github.com/segmentio/chamber/issues/84#issuecomment-437728047
    - https://www.stackery.io/blog/serverless-secrets/
@@ -114,14 +128,23 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 
 2. Why not use S3 as a primary source of secrets?
 
-   This project could have used S3 instead, because S3 supports efficient batch gets with filters by prefixes.
+   **Pros:**
+
+   Scalability. This project could have used S3 instead, because S3 supports efficient batch gets with filters by prefixes.
    An example of such project is [chamber](https://github.com/segmentio/chamber). chamber is a CLI wraps SSM Param Store and S3,
    [moving from Parameter Store to S3](https://github.com/segmentio/chamber/issues/84#issuecomment-438451470) due to the issue 1 explained above.
 
-   One of benefit of Secrets Manager over S3 is that in theory Secrets Manager has possibilities to deserve attentions of developers who
+   **Cons:**
+
+   Tooling. One of benefit of Secrets Manager over S3 is that in theory Secrets Manager has possibilities to deserve attentions of developers who
    who, for a better U/X, wraps Secrets Manager into a dedicated service/application to manager secrets.
 
    As using S3 for a primary storage for secrets is not a common practice, S3 can be said to have less possibilities to deserve.
+
+## Use in combination with...
+
+1. [sops](https://github.com/mozilla/sops) so that you can version-control the "latest master data" of secrets on Git repos.
+   Each pull request that changes the master data results in CI workflows that deploys the master data to Secrets Manager.
 
 ## Alternatives
 

@@ -135,7 +135,7 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 
 ## Why not...
 
-1. Why not use `helm-secrets` or `sops`?
+1. Why not use `helm-secrets` or `sops` in combination with e.g. `kubectl`?
 
    Because I don't want to give my CI the permission to decrypt secrets.
 
@@ -174,8 +174,10 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 
 ## Use in combination with...
 
-1. [sops](https://github.com/mozilla/sops) so that you can version-control the "latest master data" of secrets on Git repos.
+1. Use [sops](https://github.com/mozilla/sops) in an independent CI/CD pipeline so you can version-control the "latest master data" of secrets on Git repos.
    Each pull request that changes the master data results in CI workflows that deploys the master data to Secrets Manager.
+
+   Do provide only a KMS encryption permission to the CI system, so that the compromised AWS credential won't allow the attacker to decrypt your secrets.
 
 ## Alternatives
 

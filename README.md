@@ -135,7 +135,15 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
 
 ## Why not...
 
-1. Why not use AWS SSM Parameter Store as a primary source of secrets?
+1. Why not use `helm-secrets` or `sops`?
+
+   Because I don't want to give my CI the permission to decrypt secrets.
+
+   Just for example, `helm-secrets` works by calling `sops` under the hood to decrypt encrypted values.yaml files, so that `helm` is able to sees the secrets as unencrypted values.yaml files. This implies that your CI system must have an AWS credential to call `kms:Decrypt` referring your KMS key. A compromised AWS credential can be used by a malicious user to decrypt those secrets. This is especially problematic when the CI system is a publicly hosted SaaS.
+
+   `aws-secret-operator` prevents this kind of attacks by enabling your deployment pipeline usually seen in a CI system to submit just the reference to secrets stored in AWS Secrets Manager. The operator then decrypts them to produce Kubernetes `Secret` objects.
+
+2. Why not use AWS SSM Parameter Store as a primary source of secrets?
 
    **Pros:**
 
@@ -149,7 +157,7 @@ $ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
    - https://www.stackery.io/blog/serverless-secrets/
    - https://news.ycombinator.com/item?id=16758382
 
-2. Why not use S3 as a primary source of secrets?
+3. Why not use S3 as a primary source of secrets?
 
    **Pros:**
 

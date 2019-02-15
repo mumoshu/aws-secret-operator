@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aws-secret-operator
+  labels:
+    app: aws-secret-operator
 spec:
   replicas: 1
   selector:
@@ -11,12 +13,13 @@ spec:
     metadata:
       labels:
         name: aws-secret-operator
+        app: aws-secret-operator
     spec:
       serviceAccountName: aws-secret-operator
       containers:
         - name: aws-secret-operator
           # Replace this with the built image name
-          image: mumoshu/aws-secret-operator
+          image: mumoshu/aws-secret-operator:v0.1.0
           ports:
           - containerPort: 60000
             name: metrics
@@ -42,3 +45,5 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "aws-secret-operator"
+            - name: AWS_REGION
+              value: REPLACE_THIS_WITH_YOUR_REGION

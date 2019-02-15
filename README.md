@@ -65,7 +65,7 @@ difficult to trigger updates to Pods in response to AWS secrets changes.
 
 Create a custom resource `awssecret` named `example` that points the SecretsManager secret:
 
-`deploy/crds/mumoshu_v1alpha1_awssecret_cr.yaml`:
+`your_exmaple_awssecret.yaml`:
 
 ```yaml
 apiVersion: mumoshu.github.io/v1alpha1
@@ -107,30 +107,34 @@ Now, your pod should either mount the generated secret as a volume, or set an en
 ```
 # Setup Service Account
 $ kubectl create -f deploy/service_account.yaml
+
 # Setup RBAC
 $ kubectl create -f deploy/role.yaml
 $ kubectl create -f deploy/role_binding.yaml
+
 # Setup the CRD
 $ kubectl create -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml
-# Deploy the app-operator
-$ kubectl create -f deploy/operator.yaml
 
-# Create an AppService CR
-# The default controller will watch for AppService objects and create a pod for each CR
-$ kubectl create -f deploy/crds/mumoshu_v1alpha1_awssecret_cr.yaml
+# Deploy the app-operator
+# CAUTION: replace `ap-northeast-2` with your region e.g. us-west-2
+$ cat deploy/operator.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
 
 # Verify that a pod is created
-$ kubectl get pod -l app=example-appservice
-NAME                     READY     STATUS    RESTARTS   AGE
-example-appservice-pod   1/1       Running   0          1m
+$ kubectl get pod -l app=aws-secret-operator
+
+# Create an AWSSecret resource
+$ kubectl create -f your_example_awssecret.yaml
+
+# Verify that a secret is created
+$ kubectl get secret
 
 # Cleanup
-$ kubectl delete -f deploy/crds/app_v1alpha1_appservice_cr.yaml
+$ kubectl delete -f your_example_awssecret.yaml
 $ kubectl delete -f deploy/operator.yaml
-$ kubectl delete -f deploy/role.yaml
 $ kubectl delete -f deploy/role_binding.yaml
+$ kubectl delete -f deploy/role.yaml
 $ kubectl delete -f deploy/service_account.yaml
-$ kubectl delete -f deploy/crds/app_v1alpha1_appservice_crd.yaml
+$ kubectl delete -f deploy/crds/mumosu_v1alpha1_awssecret_crd.yaml
 ```
 
 ## Why not...

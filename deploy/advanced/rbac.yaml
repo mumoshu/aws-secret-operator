@@ -9,7 +9,7 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: aws-secret-operator
-  namespace: kube-system
+  namespace: default
 rules:
 - apiGroups:
   - ""
@@ -27,7 +27,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: aws-secret-operator
-  namespace: kube-system
+  namespace: default
 roleRef:
   kind: Role
   name: aws-secret-operator
@@ -60,6 +60,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: aws-secret-operator
+  namespace: default
 roleRef:
   kind: ClusterRole
   name: aws-secret-operator

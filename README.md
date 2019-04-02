@@ -108,9 +108,11 @@ Now, your pod should either mount the generated secret as a volume, or set an en
 # Setup Service Account
 $ kubectl create -f deploy/service_account.yaml
 
-# Setup RBAC
-$ kubectl create -f deploy/role.yaml
-$ kubectl create -f deploy/role_binding.yaml
+# Setup RBAC (Namespaced, more secure)
+$ kubectl create -f deploy/rbac-namespaced
+
+# Setup RBAC (Cluster-scoped, easy to use)
+$ kubectl create -f deploy/rbac
 
 # Setup the CRD
 $ kubectl create -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml

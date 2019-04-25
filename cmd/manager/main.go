@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/mumoshu/aws-secret-operator/pkg/apis"
-	"github.com/mumoshu/aws-secret-operator/pkg/controller"
+	"aws-secret-operator/pkg/apis"
+	"aws-secret-operator/pkg/controller"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/ready"

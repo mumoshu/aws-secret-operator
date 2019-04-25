@@ -2,8 +2,9 @@ package awssecret
 
 import (
 	"context"
+	"time"
 
-	mumoshuv1alpha1 "github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	mumoshuv1alpha1 "aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,11 +23,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_awssecret")
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new AWSSecret Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -53,15 +49,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner AWSSecret
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &mumoshuv1alpha1.AWSSecret{},
-	})
-	if err != nil {
-		return err
-	}
+// i'm not entirely sure what this section is for, as we don't create any pods.
+// i'm commenting it all out to test functionality without it... -dk
+//	// Watch for changes to secondary resource Pods and requeue the owner AWSSecret
+//	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+//		IsController: true,
+//		OwnerType:    &mumoshuv1alpha1.AWSSecret{},
+//	})
+//	if err != nil {
+//		return err
+//	}
 
 	return nil
 }
@@ -80,14 +77,11 @@ type ReconcileAWSSecret struct {
 
 // Reconcile reads that state of the cluster for a AWSSecret object and makes changes based on the state read
 // and what is in the AWSSecret.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+// Result.Requeue is true, otherwise upon completion it will .
 func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling AWSSecret")
 
 	// Fetch the AWSSecret instance
 	instance := &mumoshuv1alpha1.AWSSecret{}
@@ -103,7 +97,7 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
+	// Define a new Secret object
 	desired, err := r.newSecretForCR(instance)
 	if err != nil {
 		return reconcile.Result{}, errs.Wrap(err, "failed to compute secret for cr")
@@ -115,32 +109,38 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if this Secret already exists
-	current := &corev1.Pod{}
+	current := &corev1.Secret{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, current)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Secret", "Secret.Namespace", desired.Namespace, "Secret.Name", desired.Name)
+		reqLogger.Info("Secret does not exist, Creating a new Secret", "desired.Namespace", desired.Namespace, "desired.Name", desired.Name)
 		err = r.client.Create(context.TODO(), desired)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 
-		// Secret created successfully - don't requeue
-		return reconcile.Result{}, nil
+	  // Secret created successfully - requeue after 5 minutes
+		reqLogger.Info("Secret Created successfully, RequeueAfter 5 minutes")
+		return reconcile.Result{RequeueAfter: time.Second*300}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	reqLogger.Info("Updating the Secret", "Secret.Namespace", desired.Namespace, "Secret.Name", desired.Name)
-	err = r.client.Update(context.TODO(), desired)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
+	// if Secret exists, only update if versionId has changed
+	if string(current.Data["AWSVersionId"]) != desired.StringData["AWSVersionId"] {
+		reqLogger.Info("versionId changed, Updating the Secret", "desired.Namespace", desired.Namespace, "desired.Name", desired.Name)
+		err = r.client.Update(context.TODO(), desired)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 
-	// Secret updated successfully - don't requeue
-	return reconcile.Result{}, nil
+		// Secret updated successfully - requeue after 5 minutes
+		reqLogger.Info("Secret Updated successfully, RequeueAfter 5 minutes")
+		return reconcile.Result{RequeueAfter: time.Second*300}, nil
+	}
+	return reconcile.Result{RequeueAfter: time.Second*300}, nil
 }
 
-// newSecretForCR returns a busybox pod with the same name/namespace as the cr
+// newSecretForCR returns a Secret with the name/namespace defined in the cr
 func (r *ReconcileAWSSecret) newSecretForCR(cr *mumoshuv1alpha1.AWSSecret) (*corev1.Secret, error) {
 	labels := map[string]string{
 		"app": cr.Name,
@@ -155,7 +155,7 @@ func (r *ReconcileAWSSecret) newSecretForCR(cr *mumoshuv1alpha1.AWSSecret) (*cor
 	}
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-aws-secret",
+			Name:      cr.Name,
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},

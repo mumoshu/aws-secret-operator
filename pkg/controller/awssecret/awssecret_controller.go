@@ -115,7 +115,7 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if this Secret already exists
-	current := &corev1.Pod{}
+	current := &corev1.Secret{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, current)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Secret", "Secret.Namespace", desired.Namespace, "Secret.Name", desired.Name)

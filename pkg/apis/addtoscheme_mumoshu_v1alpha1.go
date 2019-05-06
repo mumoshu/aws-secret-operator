@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	"aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
 )
 
 func init() {

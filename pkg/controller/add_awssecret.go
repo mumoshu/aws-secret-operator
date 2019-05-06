@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/mumoshu/aws-secret-operator/pkg/controller/awssecret"
+	"aws-secret-operator/pkg/controller/awssecret"
 )
 
 func init() {

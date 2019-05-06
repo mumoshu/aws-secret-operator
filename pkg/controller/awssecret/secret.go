@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	"aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
 )
 
 type Context struct {
@@ -18,7 +18,7 @@ func newContext(s *session.Session) *Context {
 	}
 }
 
-func (c *Context) String(secretId string, versionId string) (*string, error) {
+func (c *Context) String(secretId string, versionId string) (*string, *string, error) {
 	if c.s == nil {
 		c.s = session.Must(session.NewSession())
 	}
@@ -27,21 +27,29 @@ func (c *Context) String(secretId string, versionId string) (*string, error) {
 		c.sm = secretsmanager.New(c.s)
 	}
 
-	getSecInput := &secretsmanager.GetSecretValueInput{
-		SecretId:  &secretId,
-		VersionId: &versionId,
+	var getSecInput *secretsmanager.GetSecretValueInput
+
+	if versionId == "" {
+		getSecInput = &secretsmanager.GetSecretValueInput{
+			SecretId: &secretId,
+		}
+	} else {
+		getSecInput = &secretsmanager.GetSecretValueInput{
+			SecretId: &secretId,
+			VersionId: &versionId,
+		}
 	}
 
 	output, err := c.sm.GetSecretValue(getSecInput)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return output.SecretString, nil
+	return output.SecretString, output.VersionId, nil
 }
 
 func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.SecretsManagerSecretRef) (map[string]string, error) {
-	sec, err := c.String(ref.SecretId, ref.VersionId)
+	sec, ver, err := c.String(ref.SecretId, ref.VersionId)
 	if err != nil {
 		return nil, err
 	}
@@ -56,5 +64,6 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 		}
 		m["port"] = string(port.Number)
 	}
+  m["AWSVersionId"] = *ver
 	return m, nil
 }

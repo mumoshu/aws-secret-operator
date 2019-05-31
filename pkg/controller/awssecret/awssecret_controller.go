@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	mumoshuv1alpha1 "aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	mumoshuv1alpha1 "github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

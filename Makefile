@@ -1,4 +1,5 @@
-IMAGE ?= mumoshu/aws-secret-operator:canary
+VERSION ?= 0.2.0
+IMAGE ?= mumoshu/aws-secret-operator:$(VERSION)
 
 publish:
 	operator-sdk build $(IMAGE) && docker push $(IMAGE)

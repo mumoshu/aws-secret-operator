@@ -1,5 +1,14 @@
 VERSION ?= 0.2.1
-IMAGE ?= mumoshu/aws-secret-operator:$(VERSION)
+REPO ?= mumoshu/aws-secret-operator
+IMAGE ?= $(REPO):$(VERSION)
+
+.PHONY: build
+build:
+	go build -o bin/aws-secret-operator ./cmd/manager
+
+.PHONY: image
+image:
+	DOCKERFILE_PATH=./Dockerfile IMAGE_NAME=$(IMAGE) REPO=$(REPO) hooks/build
 
 publish:
 	operator-sdk build $(IMAGE) && docker push $(IMAGE)

@@ -13,7 +13,7 @@ RUN if [ -n "${APP_VERSION}" ]; then git checkout -b tag refs/tags/${APP_VERSION
 
 FROM alpine:3.10
 
-RUN apk add --update --no-cache ca-certificates
+RUN apk add --update --no-cache ca-certificates libc6-compat
 
 USER nobody
 

@@ -1,4 +1,4 @@
-VERSION ?= 0.2.2
+VERSION ?= 0.2.3
 REPO ?= mumoshu/aws-secret-operator
 IMAGE ?= $(REPO):$(VERSION)
 

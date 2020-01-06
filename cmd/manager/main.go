@@ -10,7 +10,6 @@ import (
 	"github.com/mumoshu/aws-secret-operator/pkg/controller"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
-	"github.com/operator-framework/operator-sdk/pkg/ready"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -53,13 +52,6 @@ func run() error {
 
 	// Become the leader before proceeding
 	leader.Become(context.TODO(), "aws-secret-operator-lock")
-
-	r := ready.NewFileReady()
-	err = r.Set()
-	if err != nil {
-		return errors.Wrap(err, "failed to set")
-	}
-	defer r.Unset()
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})

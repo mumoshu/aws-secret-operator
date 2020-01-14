@@ -62,6 +62,8 @@ $ aws secretsmanager describe-secret --secret-id prod/mysecret
 
 > Note that `aws-secret-operator` intentionally disallow omitting `VersionId` or specifying `VersionStage` as it makes you
 difficult to trigger updates to Pods in response to AWS secrets changes.
+>
+> Run a script like [update-aws-secret-ids](https://github.com/mumoshu/aws-secret-operator/blob/master/scripts/update-aws-secret-ids) in order to automate bumping VersionId in your configuration files.
 
 Create a custom resource `awssecret` named `example` that points the SecretsManager secret:
 

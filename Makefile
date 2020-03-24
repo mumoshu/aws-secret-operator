@@ -8,7 +8,7 @@ build:
 
 .PHONY: image
 image:
-	DOCKERFILE_PATH=./Dockerfile IMAGE_NAME=$(IMAGE) REPO=$(REPO) hooks/build
+	DOCKERFILE_PATH=./build/Dockerfile IMAGE_NAME=$(IMAGE) REPO=$(REPO) hooks/build
 
 publish:
 	operator-sdk build $(IMAGE) && docker push $(IMAGE)

@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -12,6 +13,10 @@ type AWSSecretSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	StringDataFrom StringDataFrom `json:"stringDataFrom,omitempty"`
+
+	// Used to facilitate programmatic handling of secret data.
+	// +optional
+	Type corev1.SecretType `json:"type,omitempty"`
 }
 
 // StringDataFrom defines how the resulting Secret's `stringData` is built

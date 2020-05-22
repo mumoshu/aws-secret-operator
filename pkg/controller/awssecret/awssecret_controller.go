@@ -159,6 +159,7 @@ func (r *ReconcileAWSSecret) newSecretForCR(cr *mumoshuv1alpha1.AWSSecret) (*cor
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
+		Type:       cr.Spec.Type,
 		StringData: data,
 	}, nil
 }

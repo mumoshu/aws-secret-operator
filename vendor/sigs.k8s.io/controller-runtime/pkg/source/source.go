@@ -17,6 +17,7 @@ limitations under the License.
 package source
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -25,16 +26,15 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/internal/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source/internal"
 
-	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-var log = logf.KBLog.WithName("source")
+var log = logf.RuntimeLog.WithName("source")
 
 const (
 	// defaultBufferSize is the default number of event notifications that can be buffered.
@@ -54,6 +54,22 @@ type Source interface {
 	// Start is internal and should be called only by the Controller to register an EventHandler with the Informer
 	// to enqueue reconcile.Requests.
 	Start(handler.EventHandler, workqueue.RateLimitingInterface, ...predicate.Predicate) error
+}
+
+// NewKindWithCache creates a Source without InjectCache, so that it is assured that the given cache is used
+// and not overwritten. It can be used to watch objects in a different cluster by passing the cache
+// from that other cluster
+func NewKindWithCache(object runtime.Object, cache cache.Cache) Source {
+	return &kindWithCache{kind: Kind{Type: object, cache: cache}}
+}
+
+type kindWithCache struct {
+	kind Kind
+}
+
+func (ks *kindWithCache) Start(handler handler.EventHandler, queue workqueue.RateLimitingInterface,
+	prct ...predicate.Predicate) error {
+	return ks.kind.Start(handler, queue, prct...)
 }
 
 // Kind is used to provide a source of events originating inside the cluster from Watches (e.g. Pod Create)
@@ -83,11 +99,11 @@ func (ks *Kind) Start(handler handler.EventHandler, queue workqueue.RateLimiting
 	}
 
 	// Lookup the Informer from the Cache and add an EventHandler which populates the Queue
-	i, err := ks.cache.GetInformer(ks.Type)
+	i, err := ks.cache.GetInformer(context.TODO(), ks.Type)
 	if err != nil {
 		if kindMatchErr, ok := err.(*meta.NoKindMatchError); ok {
-			log.Error(err, "if %s is a CRD, should install it before calling Start",
-				kindMatchErr.GroupKind)
+			log.Error(err, "if kind is a CRD, it should be installed before calling Start",
+				"kind", kindMatchErr.GroupKind)
 		}
 		return err
 	}
@@ -243,8 +259,8 @@ func (cs *Channel) syncLoop() {
 
 // Informer is used to provide a source of events originating inside the cluster from Watches (e.g. Pod Create)
 type Informer struct {
-	// Informer is the generated client-go Informer
-	Informer toolscache.SharedIndexInformer
+	// Informer is the controller-runtime Informer
+	Informer cache.Informer
 }
 
 var _ Source = &Informer{}

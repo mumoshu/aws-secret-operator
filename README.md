@@ -104,6 +104,42 @@ The operator then creates a Kubernetes `secret` named `example` that looks like:
 
 Now, your pod should either mount the generated secret as a volume, or set an environment variable from the secret.
 
+Secrets manager has two secret formats: key/value (where the content is a plain JSON key-value map) and plain (a raw string). 
+When the operator spots the key/value version, it expands all the key-value pairs into the nested secret keys:
+```json
+{
+  "apiVersion": "v1",
+  "data": {
+    "password": "cGFzc3dvcmQ=",
+    "user": "dXNlcg=="
+  },
+  "kind": "Secret",
+  "metadata": {
+    "creationTimestamp": "2020-06-29T10:35:32Z",
+    "name": "example",
+    "namespace": "default"
+  },
+  "type": "Opaque"
+}
+``` 
+
+In case of plain secret format, the whole content of the secret is exposed as a `data` key of the secret:
+```json
+{
+  "apiVersion": "v1",
+  "data": {
+    "data": "Zm9vXG5iYXIK"
+  },
+  "kind": "Secret",
+  "metadata": {
+    "creationTimestamp": "2020-06-29T10:35:32Z",
+    "name": "example",
+    "namespace": "default"
+  },
+  "type": "Opaque"
+}
+``` 
+
 ## Installation
 
 ```

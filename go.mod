@@ -3,24 +3,36 @@ module github.com/mumoshu/aws-secret-operator
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.32.11
-	github.com/brancz/gojsontoyaml v0.0.0-20191212081931-bf2969bbd742 // indirect
-	github.com/brancz/kube-rbac-proxy v0.5.0 // indirect
-	github.com/coreos/etcd v3.3.15+incompatible // indirect
-	github.com/coreos/prometheus-operator v0.29.0 // indirect
-	github.com/go-logr/zapr v0.1.1 // indirect
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/hashicorp/go-version v1.1.0 // indirect
-	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365 // indirect
-	github.com/jsonnet-bundler/jsonnet-bundler v0.3.1 // indirect
-	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348 // indirect
-	github.com/markbates/inflect v1.0.4 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mitchellh/hashstructure v0.0.0-20170609045927-2bca23e0e452 // indirect
-	github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1 // indirect
-	github.com/operator-framework/api v0.3.8 // indirect
-	github.com/operator-framework/operator-registry v1.12.6-0.20200611222234-275301b779f8 // indirect
-	github.com/operator-framework/operator-sdk v0.8.2
+	cloud.google.com/go v0.33.1 // indirect
+	github.com/PuerkitoBio/purell v1.1.0 // indirect
+	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/aws/aws-sdk-go v1.30.26
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/emicklei/go-restful v2.8.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.0 // indirect
+	github.com/go-logr/logr v0.1.0 // indirect
+	github.com/go-logr/zapr v0.1.0 // indirect
+	github.com/go-openapi/jsonpointer v0.17.2 // indirect
+	github.com/go-openapi/jsonreference v0.17.2 // indirect
+	github.com/go-openapi/spec v0.17.2 // indirect
+	github.com/go-openapi/swag v0.17.2 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
+	github.com/google/btree v1.0.0 // indirect
+	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
+	github.com/google/uuid v1.1.0 // indirect
+	github.com/googleapis/gnostic v0.2.0 // indirect
+	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
+	github.com/hashicorp/golang-lru v0.5.0 // indirect
+	github.com/imdario/mergo v0.3.6 // indirect
+	github.com/json-iterator/go v1.1.5 // indirect
+	github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329 // indirect
+	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
+	github.com/operator-framework/operator-sdk v0.1.1-0.20181130140725-e429e79f9a6a
+	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709 // indirect
+	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c // indirect
+	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1 // indirect
 	github.com/rogpeppe/go-internal v1.5.0 // indirect

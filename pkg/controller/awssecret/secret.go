@@ -54,7 +54,8 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 		return nil, err
 	}
 	m := map[string]string{}
-	if err := json.Unmarshal([]byte(*sec), &m); err != nil {
+	jsonerr := json.Unmarshal([]byte(*sec), &m)
+	if jsonerr == nil {
 		type Port struct {
 			Number json.Number `json:"port"`
 		}
@@ -63,6 +64,8 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 			return nil, err
 		}
 		m["port"] = string(port.Number)
+	} else {
+		m["data"] = *sec
 	}
   m["AWSVersionId"] = *ver
 	return m, nil

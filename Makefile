@@ -1,4 +1,4 @@
-VERSION ?= 0.2.4
+VERSION ?= canary
 REPO ?= mumoshu/aws-secret-operator
 IMAGE ?= $(REPO):$(VERSION)
 

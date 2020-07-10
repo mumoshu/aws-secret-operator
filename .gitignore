@@ -78,3 +78,5 @@ tags
 
 .idea/
 vendor
+
+.envrc

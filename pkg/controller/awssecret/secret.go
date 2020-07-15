@@ -35,7 +35,7 @@ func (c *Context) String(secretId string, versionId string) (*string, *string, e
 		}
 	} else {
 		getSecInput = &secretsmanager.GetSecretValueInput{
-			SecretId: &secretId,
+			SecretId:  &secretId,
 			VersionId: &versionId,
 		}
 	}
@@ -53,20 +53,30 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 	if err != nil {
 		return nil, err
 	}
+
+	m, err := awsSecretValueToMap(*sec)
+	if err != nil {
+		return nil, err
+	}
+
+	m["AWSVersionId"] = *ver
+
+	return m, nil
+}
+
+func awsSecretValueToMap(sec string) (map[string]string, error) {
 	m := map[string]string{}
-	jsonerr := json.Unmarshal([]byte(*sec), &m)
-	if jsonerr == nil {
+	jsonerr := json.Unmarshal([]byte(sec), &m)
+	if jsonerr != nil {
 		type Port struct {
 			Number json.Number `json:"port"`
 		}
 		port := Port{}
-		if err := json.Unmarshal([]byte(*sec), &port); err != nil {
-			return nil, err
+		if err := json.Unmarshal([]byte(sec), &port); err != nil {
+			m["data"] = sec
+		} else {
+			m["port"] = string(port.Number)
 		}
-		m["port"] = string(port.Number)
-	} else {
-		m["data"] = *sec
 	}
-  m["AWSVersionId"] = *ver
 	return m, nil
 }

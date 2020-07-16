@@ -49,16 +49,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-// i'm not entirely sure what this section is for, as we don't create any pods.
-// i'm commenting it all out to test functionality without it... -dk
-//	// Watch for changes to secondary resource Pods and requeue the owner AWSSecret
-//	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-//		IsController: true,
-//		OwnerType:    &mumoshuv1alpha1.AWSSecret{},
-//	})
-//	if err != nil {
-//		return err
-//	}
+	// i'm not entirely sure what this section is for, as we don't create any pods.
+	// i'm commenting it all out to test functionality without it... -dk
+	//	// Watch for changes to secondary resource Pods and requeue the owner AWSSecret
+	//	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	//		IsController: true,
+	//		OwnerType:    &mumoshuv1alpha1.AWSSecret{},
+	//	})
+	//	if err != nil {
+	//		return err
+	//	}
 
 	return nil
 }
@@ -118,9 +118,9 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 			return reconcile.Result{}, err
 		}
 
-	  // Secret created successfully - requeue after 5 minutes
+		// Secret created successfully - requeue after 5 minutes
 		reqLogger.Info("Secret Created successfully, RequeueAfter 5 minutes")
-		return reconcile.Result{RequeueAfter: time.Second*300}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 300}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -135,9 +135,9 @@ func (r *ReconcileAWSSecret) Reconcile(request reconcile.Request) (reconcile.Res
 
 		// Secret updated successfully - requeue after 5 minutes
 		reqLogger.Info("Secret Updated successfully, RequeueAfter 5 minutes")
-		return reconcile.Result{RequeueAfter: time.Second*300}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 300}, nil
 	}
-	return reconcile.Result{RequeueAfter: time.Second*300}, nil
+	return reconcile.Result{RequeueAfter: time.Second * 300}, nil
 }
 
 // newSecretForCR returns a Secret with the name/namespace defined in the cr

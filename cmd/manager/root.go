@@ -18,7 +18,7 @@ var Root = &cobra.Command{
 	Short: "Creates and updates Kubernetes secrets based on secrets stored in AWS Secrets Manager",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return run(/*opts*/)
+		return run( /*opts*/ )
 	},
 }
 

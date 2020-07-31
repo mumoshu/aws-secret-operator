@@ -142,22 +142,21 @@ In case of plain secret format, the whole content of the secret is exposed as a 
 
 ## Installation
 
-```
-# Setup Service Account
-$ kubectl create -f deploy/service_account.yaml
-
+```bash
 # Setup RBAC (Namespaced, more secure)
-$ kubectl create -f deploy/rbac-namespaced
+$ kubectl create -f deploy/namespaced/rbac.yaml
 
 # Setup RBAC (Cluster-scoped, easy to use)
-$ kubectl create -f deploy/rbac
+$ kubectl create -f deploy/cluster_scoped/rbac.yaml
 
 # Setup the CRD
 $ kubectl create -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml
 
 # Deploy the app-operator
-# CAUTION: replace `ap-northeast-2` with your region e.g. us-west-2
-$ cat deploy/operator.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
+# CAUTION: replace `ap-northeast-2` with your region e.g. us-west-2, and image tag
+$ cat deploy/namespaced/deployment.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
+# or cluster-scoped
+$ cat deploy/cluster_scoped/deployment.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
 
 # Verify that a pod is created
 $ kubectl get pod -l app=aws-secret-operator
@@ -170,10 +169,8 @@ $ kubectl get secret
 
 # Cleanup
 $ kubectl delete -f your_example_awssecret.yaml
-$ kubectl delete -f deploy/operator.yaml
-$ kubectl delete -f deploy/role_binding.yaml
-$ kubectl delete -f deploy/role.yaml
-$ kubectl delete -f deploy/service_account.yaml
+$ kubectl delete -f deploy/namespaced/deployment.yaml
+$ kubectl delete -f deploy/namespaced/rbac.yaml
 $ kubectl delete -f deploy/crds/mumosu_v1alpha1_awssecret_crd.yaml
 ```
 

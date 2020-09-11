@@ -67,7 +67,7 @@ difficult to trigger updates to Pods in response to AWS secrets changes.
 
 Create a custom resource `awssecret` named `example` that points the SecretsManager secret:
 
-`your_exmaple_awssecret.yaml`:
+`your_example_awssecret.yaml`:
 
 ```yaml
 apiVersion: mumoshu.github.io/v1alpha1
@@ -171,7 +171,7 @@ $ kubectl get secret
 $ kubectl delete -f your_example_awssecret.yaml
 $ kubectl delete -f deploy/namespaced/deployment.yaml
 $ kubectl delete -f deploy/namespaced/rbac.yaml
-$ kubectl delete -f deploy/crds/mumosu_v1alpha1_awssecret_crd.yaml
+$ kubectl delete -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml
 ```
 
 ## Why not...

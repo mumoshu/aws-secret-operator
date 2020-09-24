@@ -3,7 +3,7 @@ module github.com/mumoshu/aws-secret-operator
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.30.26
+	github.com/aws/aws-sdk-go v1.34.31
 	github.com/google/go-cmp v0.4.0
 	github.com/operator-framework/operator-sdk v0.19.0
 	github.com/pkg/errors v0.9.1

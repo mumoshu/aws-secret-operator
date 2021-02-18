@@ -12,6 +12,12 @@ import (
 type AWSSecretSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+
+	// DataFrom data field is used to store arbitrary data, encoded using base64.
+	DataFrom DataFrom `json:"dataFrom,omitempty"`
+
+	// StringDataFrom stringData field is provided for convenience, and allows you to provide
+	// secret data as unencoded strings.
 	StringDataFrom StringDataFrom `json:"stringDataFrom,omitempty"`
 
 	// Used to facilitate programmatic handling of secret data.
@@ -21,6 +27,11 @@ type AWSSecretSpec struct {
 
 // StringDataFrom defines how the resulting Secret's `stringData` is built
 type StringDataFrom struct {
+	SecretsManagerSecretRef SecretsManagerSecretRef `json:"secretsManagerSecretRef,omitempty"`
+}
+
+// DataFrom defines how the resulting Secret's `data` is built
+type DataFrom struct {
 	SecretsManagerSecretRef SecretsManagerSecretRef `json:"secretsManagerSecretRef,omitempty"`
 }
 

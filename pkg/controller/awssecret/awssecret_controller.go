@@ -148,18 +148,37 @@ func (r *ReconcileAWSSecret) newSecretForCR(cr *mumoshuv1alpha1.AWSSecret) (*cor
 	if r.ctx == nil {
 		r.ctx = newContext(nil)
 	}
-	ref := cr.Spec.StringDataFrom.SecretsManagerSecretRef
-	data, err := r.ctx.SecretsManagerSecretToKubernetesStringData(ref)
-	if err != nil {
-		return nil, errs.Wrap(err, "failed to get json secret as map")
+
+	var err error
+	stringData := make(map[string]string)
+	if cr.Spec.StringDataFrom.SecretsManagerSecretRef.SecretId != "" &&
+		cr.Spec.StringDataFrom.SecretsManagerSecretRef.VersionId != "" {
+		ref := cr.Spec.StringDataFrom.SecretsManagerSecretRef
+		stringData, err = r.ctx.SecretsManagerSecretToKubernetesStringData(ref)
+		if err != nil {
+			return nil, errs.Wrap(err, "failed to get json secret as map")
+		}
 	}
+
+	data := make(map[string][]byte)
+	if cr.Spec.DataFrom.SecretsManagerSecretRef.SecretId != "" &&
+		cr.Spec.DataFrom.SecretsManagerSecretRef.VersionId != "" {
+		ref := cr.Spec.DataFrom.SecretsManagerSecretRef
+		data, err = r.ctx.SecretsManagerSecretToKubernetesData(ref)
+		if err != nil {
+			return nil, errs.Wrap(err, "failed to get json secret as map")
+		}
+	}
+
 	return &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name,
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
+		Data:       data,
+		StringData: stringData,
 		Type:       cr.Spec.Type,
-		StringData: data,
 	}, nil
 }

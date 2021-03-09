@@ -51,7 +51,10 @@ func run() error {
 	}
 
 	// Become the leader before proceeding
-	leader.Become(context.TODO(), "aws-secret-operator-lock")
+	err = leader.Become(context.TODO(), "aws-secret-operator-lock")
+	if err != nil {
+		return errors.Wrap(err, "failed to became the leader")
+	}
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})

@@ -2,6 +2,7 @@ package awssecret
 
 import (
 	"encoding/json"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
@@ -64,6 +65,22 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 	return m, nil
 }
 
+func (c *Context) SecretsManagerSecretToKubernetesData(ref v1alpha1.SecretsManagerSecretRef) (map[string][]byte, error) {
+	sec, ver, err := c.String(ref.SecretId, ref.VersionId)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := awsSecretValueToMapBytes(*sec)
+	if err != nil {
+		return nil, err
+	}
+
+	m["AWSVersionId"] = []byte(*ver)
+
+	return m, nil
+}
+
 func awsSecretValueToMap(sec string) (map[string]string, error) {
 	m := map[string]string{}
 	jsonerr := json.Unmarshal([]byte(sec), &m)
@@ -78,5 +95,14 @@ func awsSecretValueToMap(sec string) (map[string]string, error) {
 			m["port"] = string(port.Number)
 		}
 	}
+	return m, nil
+}
+
+func awsSecretValueToMapBytes(sec string) (map[string][]byte, error) {
+	m := map[string][]byte{}
+	if err := json.Unmarshal([]byte(sec), &m); err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }

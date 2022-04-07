@@ -38,7 +38,7 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "deploy", "crds")},
+		CRDDirectoryPaths:     []string{filepath.Join("..", "deploy", "crds")},
 		ErrorIfCRDPathMissing: true,
 	}
 

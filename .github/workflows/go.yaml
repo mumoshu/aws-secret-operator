@@ -18,6 +18,11 @@ jobs:
             ${{ runner.os }}-go-
       - name: Build
         run: go build ./cmd/manager/
+      - name: Install kubebuilder
+        run: |
+          curl -L -O https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.2/kubebuilder_2.3.2_linux_amd64.tar.gz
+          tar zxvf kubebuilder_2.3.2_linux_amd64.tar.gz
+          sudo mv kubebuilder_2.3.2_linux_amd64 /usr/local/kubebuilder
       - name: Test
         run: go test ./...
         env:

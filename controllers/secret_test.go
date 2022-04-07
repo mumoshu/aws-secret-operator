@@ -1,8 +1,9 @@
-package awssecret
+package controllers
 
 import (
-	"github.com/google/go-cmp/cmp"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestAWSSecretValueToMap(t *testing.T) {

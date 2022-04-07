@@ -1,4 +1,4 @@
-package awssecret
+package controllers
 
 import (
 	"encoding/json"
@@ -8,18 +8,18 @@ import (
 	"github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
 )
 
-type Context struct {
+type SyncContext struct {
 	s  *session.Session
 	sm *secretsmanager.SecretsManager
 }
 
-func newContext(s *session.Session) *Context {
-	return &Context{
+func newContext(s *session.Session) *SyncContext {
+	return &SyncContext{
 		s: s,
 	}
 }
 
-func (c *Context) String(secretId string, versionId string) (*string, *string, error) {
+func (c *SyncContext) String(secretId string, versionId string) (*string, *string, error) {
 	if c.s == nil {
 		c.s = session.Must(session.NewSession())
 	}
@@ -49,7 +49,7 @@ func (c *Context) String(secretId string, versionId string) (*string, *string, e
 	return output.SecretString, output.VersionId, nil
 }
 
-func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.SecretsManagerSecretRef) (map[string]string, error) {
+func (c *SyncContext) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.SecretsManagerSecretRef) (map[string]string, error) {
 	sec, ver, err := c.String(ref.SecretId, ref.VersionId)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (c *Context) SecretsManagerSecretToKubernetesStringData(ref v1alpha1.Secret
 	return m, nil
 }
 
-func (c *Context) SecretsManagerSecretToKubernetesData(ref v1alpha1.SecretsManagerSecretRef) (map[string][]byte, error) {
+func (c *SyncContext) SecretsManagerSecretToKubernetesData(ref v1alpha1.SecretsManagerSecretRef) (map[string][]byte, error) {
 	sec, ver, err := c.String(ref.SecretId, ref.VersionId)
 	if err != nil {
 		return nil, err

@@ -4,42 +4,83 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"runtime"
+	"strconv"
+	"time"
 
 	"github.com/mumoshu/aws-secret-operator/pkg/apis"
-	"github.com/mumoshu/aws-secret-operator/pkg/controller"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	"github.com/mumoshu/aws-secret-operator/pkg/controllers"
+	"github.com/operator-framework/operator-lib/leader"
+	"github.com/pkg/errors"
+	zaplib "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
-
-	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
-var log = logf.Log.WithName("cmd")
+var (
+	log = logf.Log.WithName("cmd")
+
+	logLevel string
+)
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
-	log.Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
 }
+
+const (
+	LogLevelDebug = "debug"
+	LogLevelInfo  = "info"
+	LogLevelWarn  = "warn"
+	LogLevelError = "error"
+)
 
 func run() error {
 	flag.Parse()
 
-	// The logger instantiated here can be changed to any logger
-	// implementing the logr.Logger interface. This logger will
-	// be propagated through the whole operator, generating
-	// uniform and structured logs.
-	logf.SetLogger(logf.ZapLogger(false))
+	logger := zap.New(func(o *zap.Options) {
+		switch logLevel {
+		case LogLevelDebug:
+			o.Development = true
+			lvl := zaplib.NewAtomicLevelAt(zaplib.DebugLevel) // maps to logr's V(1)
+			o.Level = &lvl
+		case LogLevelInfo:
+			lvl := zaplib.NewAtomicLevelAt(zaplib.InfoLevel)
+			o.Level = &lvl
+		case LogLevelWarn:
+			lvl := zaplib.NewAtomicLevelAt(zaplib.WarnLevel)
+			o.Level = &lvl
+		case LogLevelError:
+			lvl := zaplib.NewAtomicLevelAt(zaplib.ErrorLevel)
+			o.Level = &lvl
+		default:
+			// We use bitsize of 8 as zapcore.Level is a type alias to int8
+			levelInt, err := strconv.ParseInt(logLevel, 10, 8)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to parse --log-level=%s: %v", logLevel, err)
+				os.Exit(1)
+			}
+
+			// For example, --log-level=debug a.k.a --log-level=-1 maps to zaplib.DebugLevel, which is associated to logr's V(1)
+			// --log-level=-2 maps the specific custom log level that is associated to logr's V(2).
+			level := zapcore.Level(levelInt)
+			atomicLevel := zaplib.NewAtomicLevelAt(level)
+			o.Level = &atomicLevel
+		}
+		o.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)
+	})
+
+	logf.SetLogger(logger)
 
 	printVersion()
 
-	namespace, err := k8sutil.GetWatchNamespace()
+	namespace, err := getWatchNamespace()
 	if err != nil {
 		return errors.Wrap(err, "failed to get watch namespace")
 	}
@@ -70,7 +111,13 @@ func run() error {
 	}
 
 	// Setup all Controllers
-	if err := controller.AddToManager(mgr); err != nil {
+
+	awsSecretController := &controllers.AWSSecretController{
+		Scheme: mgr.GetScheme(),
+		Client: mgr.GetClient(),
+	}
+
+	if err := awsSecretController.SetupWithManager(mgr); err != nil {
 		return errors.Wrap(err, "failed to add controller(s) to manager")
 	}
 
@@ -82,4 +129,19 @@ func run() error {
 	}
 
 	return nil
+}
+
+// getWatchNamespace returns the Namespace the operator should be watching for changes
+// See https://github.com/operator-framework/operator-sdk/blob/a05f966806f1beaac3c45d28072f107a502ab253/website/content/en/docs/building-operators/golang/operator-scope.md#configuring-namespace-scoped-operators
+func getWatchNamespace() (string, error) {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	}
+	return ns, nil
 }

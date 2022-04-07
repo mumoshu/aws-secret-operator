@@ -1,30 +1,19 @@
 VERSION ?= canary
 REPO ?= mumoshu/aws-secret-operator
 IMAGE ?= $(REPO):$(VERSION)
-GO ?= go1.14.4
+GO ?= go
 
 .PHONY: build
 build:
-	go build -o bin/aws-secret-operator ./cmd/manager
+	$(GO) build -o bin/aws-secret-operator .
 
 .PHONY: image
 image:
-	DOCKERFILE_PATH=./build/Dockerfile IMAGE_NAME=$(IMAGE) REPO=$(REPO) hooks/build
+	docker build -t $(IMAGE) .
 
+.PHONY: push
 publish:
-	operator-sdk build $(IMAGE) && docker push $(IMAGE)
-
-install-tools:
-	go get github.com/aws/aws-sdk-go@v1.25.10
-	go get github.com/aws/aws-sdk-go/aws/session
-	go get github.com/aws/aws-sdk-go/service/secretsmanager
-	go get github.com/pkg/errors
-
-.PHONY: e2e
-e2e:
-	kubectl create namespace operator-test || true
-	$(GO) run github.com/operator-framework/operator-sdk/cmd/operator-sdk test local ./test/e2e --operator-namespace operator-test --up-local
-
+	docker push $(IMAGE)
 
 crds: controller-gen
 	$(CONTROLLER_GEN) crd rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=deploy/crds
@@ -48,8 +37,8 @@ ifeq (, $(wildcard $(GOBIN)/controller-gen))
 	set -e ;\
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
+	$(GO) mod init tmp ;\
+	$(GO) get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 endif

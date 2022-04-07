@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	"github.com/mumoshu/aws-secret-operator/api/mumoshu/v1alpha1"
 )
 
 type SyncContext struct {

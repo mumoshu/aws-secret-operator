@@ -14,7 +14,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	v1alpha1 "github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	v1alpha1 "github.com/mumoshu/aws-secret-operator/api/mumoshu/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

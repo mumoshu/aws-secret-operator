@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	operator "github.com/mumoshu/aws-secret-operator/pkg/apis/mumoshu/v1alpha1"
+	operator "github.com/mumoshu/aws-secret-operator/api/mumoshu/v1alpha1"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

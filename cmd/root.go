@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -9,13 +9,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mumoshu/aws-secret-operator/pkg/apis"
-	"github.com/mumoshu/aws-secret-operator/pkg/controllers"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/exec"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+
+	"github.com/mumoshu/aws-secret-operator/api"
+	"github.com/mumoshu/aws-secret-operator/controllers"
 	"github.com/operator-framework/operator-lib/leader"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	zaplib "go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -40,6 +43,30 @@ const (
 	LogLevelWarn  = "warn"
 	LogLevelError = "error"
 )
+
+type OperateOpts struct {
+	ConfigMapName      string
+	ConfigMapNamespace string
+	WatchNamespace     string
+}
+
+var opts = OperateOpts{}
+
+var Root = &cobra.Command{
+	Use:   "aws-secret-operator",
+	Short: "Creates and updates Kubernetes secrets based on secrets stored in AWS Secrets Manager",
+	Long:  ``,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return run( /*opts*/ )
+	},
+}
+
+func init() {
+	Root.Flags().StringVar(&logLevel, "log-level", LogLevelDebug, `The verbosity of the logging. Valid values are "debug", "info", "warn", "error". Defaults to "debug".`)
+	Root.Flags().StringVar(&opts.ConfigMapName, "configmap-name", "falco-operator", "the name of the configmap to which this operator writes the concatenated falco rules")
+	Root.Flags().StringVarP(&opts.ConfigMapNamespace, "configmap-namespace", "n", "kube-system", "namespace in which falco and falco-operator are running")
+	Root.Flags().StringVarP(&opts.WatchNamespace, "watch-namespace", "w", "", "namespaces on which the operator watches for changes")
+}
 
 func run() error {
 	flag.Parse()
@@ -106,7 +133,7 @@ func run() error {
 	log.Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := api.AddToScheme(mgr.GetScheme()); err != nil {
 		return errors.Wrap(err, "failed to add apis to scheme")
 	}
 

@@ -174,6 +174,10 @@ $ kubectl delete -f deploy/namespaced/rbac.yaml
 $ kubectl delete -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml
 ```
 
+### Helm Chart
+
+If you use helm chart, you can install this application by [chart](https://github.com/chatwork/charts/tree/master/aws-secret-operator).
+
 ## Why not...
 
 1. Why not use `helm-secrets` or `sops` in combination with e.g. `kubectl`?

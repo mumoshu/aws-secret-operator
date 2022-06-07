@@ -19,12 +19,12 @@ spec:
       containers:
         - name: aws-secret-operator
           # Replace this with the built image name
-          image: mumoshu/aws-secret-operator:0.3.3
+          image: mumoshu/aws-secret-operator:0.5.0
           ports:
           - containerPort: 60000
             name: metrics
           command:
-          - aws-secret-operator
+          - /manager
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE

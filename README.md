@@ -150,7 +150,7 @@ $ kubectl create -f deploy/namespaced/rbac.yaml
 $ kubectl create -f deploy/cluster_scoped/rbac.yaml
 
 # Setup the CRD
-$ kubectl create -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml
+$ kubectl create -f deploy/crds/mumoshu.github.io_awssecrets.yaml
 
 # Deploy the app-operator
 # CAUTION: replace `ap-northeast-2` with your region e.g. us-west-2, and image tag

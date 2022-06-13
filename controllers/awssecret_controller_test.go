@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
+	zaplib "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,8 +46,18 @@ func SetupIntegrationTest(ctx2 context.Context) *testEnvironment {
 		err := k8sClient.Create(ctx, ns)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
 
+		logger := zap.New(func(o *zap.Options) {
+			// For example, --log-level=debug a.k.a --log-level=-1 maps to zaplib.DebugLevel, which is associated to logr's V(1)
+			// --log-level=-2 maps the specific custom log level that is associated to logr's V(2).
+			level := zapcore.Level(-2)
+			atomicLevel := zaplib.NewAtomicLevelAt(level)
+			o.Level = &atomicLevel
+			o.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)
+		})
+
 		mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 			Namespace: ns.Name,
+			Logger:    logger,
 		})
 		Expect(err).NotTo(HaveOccurred(), "failed to create manager")
 
@@ -55,6 +69,7 @@ func SetupIntegrationTest(ctx2 context.Context) *testEnvironment {
 			Name:   controllerName("awssecret"),
 			Client: mgr.GetClient(),
 			Scheme: scheme.Scheme,
+			Log:    &logger,
 		}
 		err = awsSecretController.SetupWithManager(mgr)
 		Expect(err).NotTo(HaveOccurred(), "failed to setup runner controller")

@@ -11,7 +11,7 @@ import (
 // AWSSecretSpec defines the desired state of AWSSecret
 type AWSSecretSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 
 	// DataFrom data field is used to store arbitrary data, encoded using base64.
 	DataFrom DataFrom `json:"dataFrom,omitempty"`
@@ -23,6 +23,14 @@ type AWSSecretSpec struct {
 	// Used to facilitate programmatic handling of secret data.
 	// +optional
 	Type corev1.SecretType `json:"type,omitempty"`
+
+	// +optional
+	Metadata *SecretMeta `json:"metadata,omitempty"`
+}
+
+type SecretMeta struct {
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // StringDataFrom defines how the resulting Secret's `stringData` is built

@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	retryInterval = time.Second * 5
-	timeout       = time.Second * 60
+	retryInterval = time.Second * 1
+	timeout       = time.Second * 3
 )
 
 // This runs a series of AWS API calls and K8s API calls
@@ -119,7 +119,7 @@ func awsSecretTest(ctx context.Context, client client.Client, namespace string) 
 		return err
 	}
 
-	err = waitForSecret(ctx, log, client, namespace, "example-secret", map[string]string{"value": "v1value"}, retryInterval, timeout)
+	err = waitForSecret(ctx, log, client, "creation", namespace, "example-secret", map[string]string{"value": "v1value"}, nil, nil, retryInterval, timeout)
 	if err != nil {
 		return err
 	}
@@ -128,6 +128,7 @@ func awsSecretTest(ctx context.Context, client client.Client, namespace string) 
 	if err != nil {
 		return err
 	}
+
 	exampleAWSSecret.Spec.StringDataFrom.SecretsManagerSecretRef.VersionId = versionIDV2
 	err = client.Update(ctx, exampleAWSSecret)
 	if err != nil {
@@ -135,11 +136,42 @@ func awsSecretTest(ctx context.Context, client client.Client, namespace string) 
 	}
 
 	// wait for example-secret to be updated
-	return waitForSecret(ctx, log, client, namespace, "example-secret", map[string]string{"value": "v2value"}, retryInterval, timeout)
+	err = waitForSecret(ctx, log, client, "update", namespace, "example-secret", map[string]string{"value": "v2value"}, nil, nil, retryInterval, timeout)
+	if err != nil {
+		return err
+	}
+
+	err = client.Get(ctx, types.NamespacedName{Name: "example-secret", Namespace: namespace}, exampleAWSSecret)
+	if err != nil {
+		return err
+	}
+
+	labels := map[string]string{"label1": "labelv1"}
+	annotations := map[string]string{"annotation1": "annotationv1"}
+
+	exampleAWSSecret.Spec.Metadata = &operator.SecretMeta{
+		Labels:      labels,
+		Annotations: annotations,
+	}
+	err = client.Update(ctx, exampleAWSSecret)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Updated awsSecret", "spec.metadata", exampleAWSSecret.Spec.Metadata)
+
+	// wait for example-secret to have the custom label and annotation
+	err = waitForSecret(ctx, log, client, "custom label and annotation", namespace, "example-secret", map[string]string{"value": "v2value"}, labels, annotations, retryInterval, timeout)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func waitForSecret(ctx context.Context, log logr.Logger, client client.Client, namespace, name string,
+func waitForSecret(ctx context.Context, log logr.Logger, client client.Client, desc, namespace, name string,
 	expectedKVs map[string]string,
+	labels, annotations map[string]string,
 	retryInterval, timeout time.Duration) error {
 
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -164,10 +196,32 @@ func waitForSecret(ctx context.Context, log logr.Logger, client client.Client, n
 			}
 		}
 
+		if want, got := len(labels), len(secret.Labels); want != got {
+			log.Info("Still waiting for labels to be updated", "want", want, "got", got, "observed", secret.Labels)
+			return false, nil
+		}
+		for k, want := range labels {
+			if got := secret.Labels[k]; want != got {
+				log.Info("Still waiting for label to be updated", "label", k, "want", want, "got", got)
+				return false, nil
+			}
+		}
+
+		if want, got := len(annotations), len(secret.Annotations); want != got {
+			log.Info("Still waiting for annotations to be updated", "key", want, "got", got)
+			return false, nil
+		}
+		for k, want := range annotations {
+			if got := secret.Annotations[k]; want != got {
+				log.Info("Still waiting for annotation to be updated", "key", k, "want", want, "got", got)
+				return false, nil
+			}
+		}
+
 		return true, nil
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed while waiting for %s: %w", desc, err)
 	}
 	log.Info("Secret available", "name", name)
 	return nil

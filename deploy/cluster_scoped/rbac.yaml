@@ -26,6 +26,12 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+- apiGroups:
   - mumoshu.github.io
   resources:
   - '*'

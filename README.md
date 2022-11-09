@@ -145,10 +145,10 @@ In case of plain secret format, the whole content of the secret is exposed as a 
 The following spec fields are defined to customize the generated Secret:
 
 - `spec.type` maps to generated secret's `type` field
-- `spec.annotations` maps to generated secret's `metadata.annotations` field
-- `spec.labels` maps to genrated secret's `metadata.labels` field
+- `spec.metadata.annotations` maps to generated secret's `metadata.annotations` field
+- `spec.metadata.labels` maps to genrated secret's `metadata.labels` field
 
-Note that `AWSSecret`'s `metadata.annotations` and `metadata.labels` are not propagated down to the generate secret. Use `spec.annotations` and `spec.labels` instead.
+Note that `AWSSecret`'s `metadata.annotations` and `metadata.labels` are not propagated down to the generate secret. Use `spec.metadata.annotations` and `spec.metadata.labels` instead.
 
 ## Installation
 

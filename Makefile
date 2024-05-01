@@ -1,5 +1,5 @@
 VERSION ?= canary
-REPO ?= mumoshu/aws-secret-operator
+REPO ?= cwsakamoto/aws-secret-operator
 IMAGE ?= $(REPO):$(VERSION)
 GO ?= go
 

@@ -1,6 +1,6 @@
 module github.com/mumoshu/aws-secret-operator
 
-go 1.18
+go 1.22
 
 require (
 	github.com/aws/aws-sdk-go v1.34.31

@@ -46,3 +46,23 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+# Usage:
+#   $ GO=go1.22.2 make envtest
+#   $ setup-envtest use
+#   Version: 1.30.0
+#   OS/Arch: linux/amd64
+#   md5: HF5NZL0/RlgCgF7AU3z2/A==
+#   Path: /home/yourname/.local/share/kubebuilder-envtest/k8s/1.30.0-linux-amd64
+#   $ setup-envtest list -i
+#   (installed)  v1.30.0  linux/amd64
+#   $ source <(setup-envtest use -i -p env 1.30.x)
+#   $ $KUBEBUILDER_ASSETS/etcd --version
+#   $ go test ./...
+.PHONY: envtest
+envtest:
+	$(GO) install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: test
+test: envtest
+	PATH=$(PATH):$(shell $(GO) env GOPATH)/bin bash -c 'source <(setup-envtest use -i -p env 1.30.x); $(GO) test ./...'

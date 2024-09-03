@@ -1,0 +1,56 @@
+# Setup RBAC (Namespaced, more secure)
+$ kubectl create -f deploy/namespaced/rbac.yaml
+
+# Setup RBAC (Cluster-scoped, easy to use)
+$ kubectl create -f deploy/cluster_scoped/rbac.yaml
+
+# Setup the CRD
+$ kubectl create -f deploy/crds/mumoshu.github.io_awssecrets.yaml
+
+# Deploy the app-operator
+# CAUTION: replace `ap-northeast-2` with your region e.g. us-west-2, and image tag
+$ cat deploy/namespaced/deployment.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
+# or cluster-scoped
+$ cat deploy/cluster_scoped/deployment.yaml | sed -e 's/REPLACE_THIS_WITH_YOUR_REGION/ap-northeast-1/' | kubectl create -f -
+
+# Verify that a pod is created
+$ kubectl get pod -l app=aws-secret-operator
+
+# Create an AWSSecret resource
+$ kubectl create -f your_example_awssecret.yaml
+
+# Verify that a secret is created
+$ kubectl get secret
+
+# Cleanup
+$ kubectl delete -f your_example_awssecret.yaml
+$ kubectl delete -f deploy/namespaced/deployment.yaml
+$ kubectl delete -f deploy/namespaced/rbac.yaml
+$ kubectl delete -f deploy/crds/mumoshu_v1alpha1_awssecret_crd.yaml# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
